@@ -43,7 +43,8 @@ We use Anonymous Self-Credentials (unlinkable, Sybil-resistant, zero-knowledge).
 - **Role:** Distributed credential issuance. Instead of trusting a single Uber signing key,
   a t-of-n committee of threshold signers issues the credential. No single server can
   forge or revoke.
-- **Where it appears:** Credential issuance service (mock for demo), architecture diagram
+- **Where it appears:** Real threshold signing — 5 local ThetaCrypt Rust signer processes,
+  3-of-5 required to issue credential. No simulation.
 - **Track differentiator:** Directly demonstrates "Cryptographic Primitives" mastery
 
 ### Paper 3 — Constraint-Friendly Map-to-Curve (Optimization Layer)
@@ -53,12 +54,10 @@ We use Anonymous Self-Credentials (unlinkable, Sybil-resistant, zero-knowledge).
   Makes ZK proofs dramatically faster and cheaper.
 - **Where it appears:** Noir circuit library (map_to_curve.nr), performance benchmarks
 
-### Paper 4 — TEE Threat Models (Data Integrity Layer)
-- **Source:** https://arxiv.org/pdf/2506.14964
-- **Role:** Closes the trust gap: how does the verifier know the credential reflects REAL
-  Uber data? Answer: run the platform API connector inside a TEE (Intel TDX/SGX),
-  generate attestation, embed attestation hash in credential.
-- **Where it appears:** Platform connector service (mocked for demo with attestation stub)
+### TEE (Production Architecture Note — NOT BUILT)
+- In production, the platform data connector would run inside a TEE enclave (Intel TDX/SGX)
+  to close the oracle trust gap. Not built for this demo — requires actual secure enclave
+  hardware. The credential issuance trust is carried by ThetaCrypt threshold signing instead.
 
 ---
 
@@ -66,24 +65,15 @@ We use Anonymous Self-Credentials (unlinkable, Sybil-resistant, zero-knowledge).
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  LAYER 4: DATA INTEGRITY (Paper 4 — TEE)                    │
-│                                                              │
-│  Platform API (Uber/Airbnb/Lyft)                            │
-│       │                                                      │
-│       ▼ runs inside TEE enclave (mocked for demo)           │
-│  Platform Connector → TEE Attestation Quote                  │
-│       │  { rating: 4.8, trips: 1547, attestation: 0xABC }  │
-└───────┼──────────────────────────────────────────────────────┘
-        │
-        ▼
-┌─────────────────────────────────────────────────────────────┐
 │  LAYER 3: DISTRIBUTED ISSUANCE (Paper 2 — ThetaCrypt)       │
 │                                                              │
+│  Demo data: { rating: 4.8, trips: 1547 } (hardcoded)       │
+│       │                                                      │
 │  ThetaCrypt Committee (t-of-n threshold EdDSA signing)      │
 │       │  threshold: 3-of-5 signers required                 │
-│       │  no single server can forge/revoke                  │
+│       │  5 real Rust signing processes, real crypto          │
 │       ▼                                                      │
-│  Credential = EdDSA_sign(attributes + TEE_attestation_hash) │
+│  Credential = EdDSA_sign(attributes, derived_key)           │
 └───────┼──────────────────────────────────────────────────────┘
         │
         ▼
@@ -194,14 +184,14 @@ Architecture shows where real TEE integration would plug in.
 - **Target:** <500 constraints total
 
 ### Layer 3: Credential Issuance
-- **ThetaCrypt:** Rust library for threshold EdDSA (mocked for demo)
-- **TEE:** Attestation stub (mocked, architecture shows real integration path)
+- **ThetaCrypt:** Real Rust library — 5 local signer processes, actual t-of-n threshold EdDSA
+- **Data source:** Hardcoded demo values (Uber API not public; this is explicitly demo data)
 
-### Layer 4: Demo Interface
-- **Runtime:** Node.js / TypeScript
-- **CLI:** Script-driven demo (NOT a React frontend)
-- **Why CLI:** Clean terminal demo showing proof generation + on-chain verification
-  impresses judges more than a broken React UI
+### Layer 4: Frontend
+- **Framework:** Next.js (TypeScript)
+- **Style:** Clean, minimal — focused on showing the user journey
+- **Pages:** Register → Connect Platform → Issue Credential → Generate Proof → Verify
+- **Why frontend over CLI:** Demo video for judges needs a visual interface
 
 ---
 
@@ -234,19 +224,35 @@ reputrans/
 │   │   ├── Nargo.toml
 │   │   └── Prover.toml
 │   │
-│   └── demo/                          # TypeScript CLI demo
-│       ├── src/
-│       │   ├── demo.ts                # Full user journey script
-│       │   ├── lib/
-│       │   │   ├── identity.ts        # Master identity + anonymity set
-│       │   │   ├── credential.ts      # Credential issuance (EdDSA)
-│       │   │   ├── threshold.ts       # ThetaCrypt mock (t-of-n signing)
-│       │   │   ├── tee.ts             # TEE attestation mock
-│       │   │   ├── proof.ts           # Noir proof generation wrapper
-│       │   │   ├── merkle.ts          # Merkle tree utilities
-│       │   │   └── ethereum.ts        # Contract interaction (viem)
-│       │   └── types/
-│       │       └── index.ts
+│   ├── issuance/                      # ThetaCrypt threshold signing (Rust)
+│   │   ├── src/
+│   │   │   └── main.rs                # 5 signer nodes + coordinator
+│   │   └── Cargo.toml
+│   │
+│   ├── api/                           # Backend API (TypeScript / Node.js)
+│   │   ├── src/
+│   │   │   ├── server.ts              # Express server
+│   │   │   ├── lib/
+│   │   │   │   ├── identity.ts        # Master identity + anonymity set
+│   │   │   │   ├── credential.ts      # Credential issuance (EdDSA)
+│   │   │   │   ├── threshold.ts       # ThetaCrypt integration
+│   │   │   │   ├── proof.ts           # Noir proof generation wrapper
+│   │   │   │   ├── merkle.ts          # Merkle tree utilities
+│   │   │   │   └── ethereum.ts        # Contract interaction (viem)
+│   │   │   └── types/
+│   │   │       └── index.ts
+│   │   ├── package.json
+│   │   └── tsconfig.json
+│   │
+│   └── frontend/                      # Next.js frontend
+│       ├── app/
+│       │   ├── page.tsx               # Landing / home
+│       │   ├── register/page.tsx      # Step 1: Create master identity
+│       │   ├── connect/page.tsx       # Step 2: Connect platform (demo Uber data)
+│       │   ├── credential/page.tsx    # Step 3: Issue threshold credential
+│       │   ├── prove/page.tsx         # Step 4: Generate ZK proof
+│       │   └── verify/page.tsx        # Step 5: On-chain verification result
+│       ├── components/
 │       ├── package.json
 │       └── tsconfig.json
 │
@@ -620,19 +626,10 @@ async function runDemo() {
   console.log(`  ✓ Added to anonymity set #0 (1024 members)`);
   console.log(`  ✓ Merkle root updated on-chain: ${merkleRoot.slice(0, 16)}...\n`);
 
-  // Scene 2: TEE-attested data fetch (Paper 4)
-  console.log("▸ Scene 2: Platform Data Fetch (TEE Attestation)");
-  const platformData = await fetchWithTEE("uber", {
-    rating: 48,      // 4.8 stars
-    tripCount: 1547,
-    active: true,
-  });
-  console.log(`  ✓ Fetched from Uber API inside TEE enclave`);
-  console.log(`  ✓ TEE attestation: ${platformData.attestation.slice(0, 16)}...`);
-  console.log(`  ✓ Data integrity guaranteed by hardware\n`);
-
-  // Scene 3: Threshold credential issuance (Paper 2 — ThetaCrypt)
-  console.log("▸ Scene 3: Credential Issuance (ThetaCrypt Threshold Signing)");
+  // Scene 2: Threshold credential issuance (Paper 2 — ThetaCrypt)
+  console.log("▸ Scene 2: Credential Issuance (ThetaCrypt Threshold Signing)");
+  // Demo data — Uber API is not public; this is explicitly labelled as demo data
+  const platformData = { rating: 48, tripCount: 1547, platform: "uber" };
   const credential = await issueThresholdCredential(
     platformData,
     alice,
@@ -866,24 +863,23 @@ Cross-agent:
 ### MUST HAVE (the demo)
 - [ ] Working Noir circuit (EdDSA + Merkle + range + nullifier)
 - [ ] Contracts deployed to Sepolia (U2SSORegistry + ReputationVerifier)
-- [ ] CLI demo showing full user journey with real proof generation
-- [ ] All 4 papers clearly demonstrated in architecture
+- [ ] Real ThetaCrypt threshold signing (5 Rust signer processes, 3-of-5)
+- [ ] Next.js frontend showing full 5-step user journey
+- [ ] All 3 papers clearly demonstrated (U2SSO, ThetaCrypt, Map-to-Curve)
 
 ### SHOULD HAVE (differentiators)
-- [ ] ThetaCrypt threshold mock (t-of-n signing simulation)
-- [ ] TEE attestation mock (deterministic attestation hash)
-- [ ] Performance benchmarks (constraints count, proof time)
+- [ ] Performance benchmarks shown in UI (constraints count, proof time, gas used)
+- [ ] Privacy analysis panel (what insurer learned vs. didn't)
+- [ ] Multiple platform types in demo (Uber + Airbnb)
 
 ### NICE TO HAVE (if time permits)
-- [ ] Multiple platform types in demo (Uber + Airbnb)
 - [ ] Gas cost comparison table
-- [ ] Architecture diagram (Mermaid or ASCII art in README)
+- [ ] Architecture diagram in README
 
 ### SKIP
-- [ ] Full Next.js/React frontend
-- [ ] Real ThetaCrypt Rust integration
-- [ ] Real TEE enclave deployment
+- [ ] TEE enclave (requires hardware; noted in README as production enhancement)
 - [ ] Production Merkle tree indexer
+- [ ] Real Uber/Airbnb API integration (demo data is explicitly hardcoded)
 
 ---
 
