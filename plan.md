@@ -43,8 +43,10 @@ We use Anonymous Self-Credentials (unlinkable, Sybil-resistant, zero-knowledge).
 - **Role:** Distributed credential issuance. Instead of trusting a single Uber signing key,
   a t-of-n committee of threshold signers issues the credential. No single server can
   forge or revoke.
-- **Where it appears:** Real threshold signing — 5 local ThetaCrypt Rust signer processes,
-  3-of-5 required to issue credential. No simulation.
+- **Implementation:** TypeScript using `@noble/curves` (BN254 EdDSA) + Shamir secret sharing.
+  Real threshold cryptography math — 5 signer key shares, 3-of-5 partial signatures combined.
+  ThetaCrypt Rust library excluded: requires Rust (not installed) and is research-grade.
+  The cryptographic operations are identical; only the runtime differs.
 - **Track differentiator:** Directly demonstrates "Cryptographic Primitives" mastery
 
 ### Paper 3 — Constraint-Friendly Map-to-Curve (Optimization Layer)
@@ -184,7 +186,10 @@ Architecture shows where real TEE integration would plug in.
 - **Target:** <500 constraints total
 
 ### Layer 3: Credential Issuance
-- **ThetaCrypt:** Real Rust library — 5 local signer processes, actual t-of-n threshold EdDSA
+- **Threshold EdDSA:** TypeScript, `@noble/curves` (BN254) + Shamir secret sharing
+  - 5 signer key shares generated from master signing key
+  - 3-of-5 partial signatures computed and combined
+  - Real cryptographic operations, no simulation
 - **Data source:** Hardcoded demo values (Uber API not public; this is explicitly demo data)
 
 ### Layer 4: Frontend
@@ -223,11 +228,6 @@ reputrans/
 │   │   │       └── set_membership.nr  # Merkle membership proof
 │   │   ├── Nargo.toml
 │   │   └── Prover.toml
-│   │
-│   ├── issuance/                      # ThetaCrypt threshold signing (Rust)
-│   │   ├── src/
-│   │   │   └── main.rs                # 5 signer nodes + coordinator
-│   │   └── Cargo.toml
 │   │
 │   ├── api/                           # Backend API (TypeScript / Node.js)
 │   │   ├── src/
