@@ -41,8 +41,15 @@ export default function CredentialPage() {
     setLoading(true);
     setError(null);
     try {
+      const customStats = loadState('customStats') as { rating: number; tripCount: number } | null;
+      const body = customStats
+        ? { rating: customStats.rating, tripCount: customStats.tripCount }
+        : {};
+
       const raw = await apiFetch<CredentialApiResponse>("/credential/issue", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
       const res: CredentialResponse = {
         signature: {

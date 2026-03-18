@@ -47,6 +47,11 @@ const PORT = process.env.PORT || 3001;
 let currentIdentity: MasterIdentity | null = null;
 let currentLeafIndex: number | null = null;
 let currentCredential: ThresholdCredential | null = null;
+let currentProof: {
+  nullifier: string;
+  generationTimeMs: number;
+  proofSizeBytes: number;
+} | null = null;
 
 // ─── Health check ──────────────────────────────────────────────────────
 
@@ -56,6 +61,46 @@ app.get('/health', (_req, res) => {
     status: 'ok',
     contracts: getContractAddresses(),
     tree: { root: '0x' + tree.root.toString(16).padStart(64, '0'), size: tree.size },
+  });
+});
+
+// ─── Demo reset ────────────────────────────────────────────────────────
+
+app.post('/admin/reset', (_req, res) => {
+  currentIdentity = null;
+  currentLeafIndex = null;
+  currentCredential = null;
+  currentProof = null;
+  // Intentionally does NOT reset Merkle tree — anonymity set grows with each demo
+  res.json({ success: true });
+});
+
+// ─── Session state (for dashboard hydration) ───────────────────────────
+
+app.get('/session/state', (_req, res) => {
+  res.json({
+    identity: currentIdentity
+      ? {
+          commitment: '0x' + currentIdentity.commitment.toString(16).padStart(64, '0'),
+          leafIndex: currentLeafIndex,
+          setIndex: null,
+          merkleRoot: null,
+        }
+      : null,
+    credential: currentCredential
+      ? {
+          attributes: {
+            rating: (currentCredential as any).customRating ?? 48,
+            tripCount: (currentCredential as any).customTripCount ?? 1547,
+            platform: 'Uber',
+          },
+          threshold: {
+            threshold: 3,
+            totalSigners: 5,
+          },
+        }
+      : null,
+    proof: currentProof ?? null,
   });
 });
 
@@ -89,6 +134,7 @@ app.post('/identity/register', async (_req, res) => {
         setIndex,
         merkleRoot: '0x' + merkleRoot.toString(16).padStart(64, '0'),
       },
+      masterSecret: '0x' + currentIdentity.secret.toString(16).padStart(64, '0'),
       onChain: txHash ? { txHash, gasUsed: gasUsed?.toString() } : null,
     });
   } catch (error) {
@@ -115,15 +161,37 @@ app.get('/platform/demo-data', (_req, res) => {
 
 // ─── Step 3: Issue threshold credential ────────────────────────────────
 
-app.post('/credential/issue', async (_req, res) => {
+app.post('/credential/issue', async (req, res) => {
   try {
     if (!currentIdentity) {
       return res.status(400).json({ error: 'Register identity first (POST /identity/register)' });
     }
 
+    // Accept optional custom stats from frontend (editable on Step 2)
+    const rawRating = req.body?.rating;
+    const rawTripCount = req.body?.tripCount;
+
+    // Validate if provided
+    let rating = 48; // default: 4.8 stars encoded as integer
+    let tripCount = 1547; // default
+    if (rawRating !== undefined) {
+      const r = Number(rawRating);
+      if (!Number.isInteger(r) || r < 10 || r > 50) {
+        return res.status(400).json({ error: 'rating must be integer 10–50 (e.g. 48 = 4.8 stars)' });
+      }
+      rating = r;
+    }
+    if (rawTripCount !== undefined) {
+      const t = Number(rawTripCount);
+      if (!Number.isInteger(t) || t < 1 || t > 99999) {
+        return res.status(400).json({ error: 'tripCount must be integer 1–99999' });
+      }
+      tripCount = t;
+    }
+
     const attrs = {
-      rating: 48, // 4.8 stars
-      tripCount: 1547,
+      rating,
+      tripCount,
       platformId: 0x00, // Uber
       derivedKey: currentIdentity.derivedKey,
     };
@@ -131,11 +199,15 @@ app.post('/credential/issue', async (_req, res) => {
     // Pre-compute credential_message matching circuit:
     // attr_hash = pedersen_hash([rating, trip_count, platform_id, derived_key])
     const credMsg = await pedersenHash([
-      48n, 1547n, 0n, currentIdentity.derivedKey,
+      BigInt(rating), BigInt(tripCount), 0n, currentIdentity.derivedKey,
     ]);
 
     console.log('Issuing threshold credential...');
     currentCredential = await issueThresholdCredential(attrs, credMsg);
+
+    // Attach custom values so /session/state can return them
+    (currentCredential as any).customRating = rating;
+    (currentCredential as any).customTripCount = tripCount;
     console.log('Credential issued successfully');
     const signerDetails = getSignerDetails();
 
@@ -193,9 +265,12 @@ app.post('/proof/generate', async (req, res) => {
 
     // Compute credential_message matching circuit:
     // attr_hash = pedersen_hash([rating, trip_count, platform_id, derived_key])
+    const storedRating = BigInt((currentCredential as any).customRating ?? 48);
+    const storedTripCount = BigInt((currentCredential as any).customTripCount ?? 1547);
+
     const credentialMessage = await pedersenHash([
-      48n,   // rating
-      1547n, // trip_count
+      storedRating,
+      storedTripCount,
       0n,    // platform_id (Uber)
       currentIdentity.derivedKey,
     ]);
@@ -213,8 +288,8 @@ app.post('/proof/generate', async (req, res) => {
       credential_signature_r8_x: currentCredential.signature.r.x.toString(),
       credential_signature_r8_y: currentCredential.signature.r.y.toString(),
       credential_message: credentialMessage.toString(),
-      rating: '48',
-      trip_count: '1547',
+      rating: storedRating.toString(),
+      trip_count: storedTripCount.toString(),
       platform_id: '0',
       merkle_path: path.map((p) => p.toString()),
       merkle_indices: indices.map((i) => i.toString()),
@@ -222,6 +297,12 @@ app.post('/proof/generate', async (req, res) => {
     };
 
     const result = await generateProof(proofInputs);
+
+    currentProof = {
+      nullifier: '0x' + (nullifier as bigint).toString(16).padStart(64, '0'),
+      generationTimeMs: result.generationTimeMs,
+      proofSizeBytes: result.proof.length,
+    };
 
     res.json({
       success: true,

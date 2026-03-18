@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { apiFetch, loadState } from "../lib/api";
+import { apiFetch, loadState, saveState } from "../lib/api";
 
 interface VerifyApiResponse {
   success: boolean;
@@ -24,6 +24,8 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<VerifyResponse | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [urlCopied, setUrlCopied] = useState(false);
   const missingPrev = typeof window !== "undefined" && !loadState("proof");
 
   async function handleVerify() {
@@ -41,6 +43,17 @@ export default function VerifyPage() {
         gasUsed: raw.onChainVerification?.gasUsed ? parseInt(raw.onChainVerification.gasUsed) : undefined,
       };
       setData(res);
+
+      // Build shareable verifier URL and persist for dashboard
+      if (res.txHash) {
+        const params = new URLSearchParams({
+          tx: res.txHash,
+          verified: String(res.verified),
+        });
+        const url = `${window.location.origin}/shared-proof?${params.toString()}`;
+        setShareUrl(url);
+        saveState("verification", { txHash: res.txHash, verified: res.verified });
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Verification failed");
     } finally {
@@ -256,6 +269,28 @@ export default function VerifyPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 flex-wrap">
+            {shareUrl && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(shareUrl);
+                  setUrlCopied(true);
+                  setTimeout(() => setUrlCopied(false), 2000);
+                }}
+                className="bg-violet-500/10 border border-violet-500/30 text-violet-400 font-medium px-5 py-2.5 rounded-xl hover:bg-violet-500/20 transition-colors duration-200 cursor-pointer text-sm"
+              >
+                {urlCopied ? "Link copied \u2713" : "Share Your Proof"}
+              </button>
+            )}
+            <a
+              href="/dashboard"
+              className="bg-amber-400 text-black font-semibold px-5 py-2.5 rounded-xl hover:bg-amber-300 transition-colors duration-200 cursor-pointer text-sm inline-block"
+            >
+              Go to Dashboard &rarr;
+            </a>
           </div>
 
           {/* Back to start */}

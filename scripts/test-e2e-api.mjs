@@ -25,6 +25,14 @@ async function post(path, body) {
   return res.json();
 }
 
+async function postRaw(path, body) {
+  return await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 async function get(path) {
   const res = await fetch(`${BASE_URL}${path}`);
   return res.json();
@@ -132,6 +140,75 @@ async function main() {
     log(`Public inputs: ${info.publicInputCount}`);
   } catch (e) {
     log(`Circuit info error: ${e.message}`, false);
+  }
+
+  // ── Stream D: New endpoints ──────────────────────────────────────────────
+  console.log('\n--- Stream D: Session State, Admin Reset, Custom Stats ---');
+
+  // Test session state returns null after reset
+  try {
+    await post('/admin/reset', {});
+    const state = await get('/session/state');
+    log('GET /session/state returns null state after reset',
+      state.identity === null && state.credential === null && state.proof === null);
+  } catch (e) {
+    log(`Session state (empty) failed: ${e.message}`, false);
+  }
+
+  // Test masterSecret in register response
+  try {
+    await post('/admin/reset', {});
+    const reg2 = await post('/identity/register', {});
+    log('POST /identity/register returns masterSecret',
+      reg2.masterSecret && reg2.masterSecret.startsWith('0x') && reg2.masterSecret.length === 66);
+  } catch (e) {
+    log(`masterSecret test failed: ${e.message}`, false);
+  }
+
+  // Test session state returns identity after registration
+  try {
+    const state2 = await get('/session/state');
+    log('GET /session/state returns identity after registration',
+      state2.identity !== null && state2.identity.commitment.startsWith('0x'));
+  } catch (e) {
+    log(`Session state (identity) failed: ${e.message}`, false);
+  }
+
+  // Test custom credential stats
+  try {
+    const cred2 = await post('/credential/issue', { rating: 42, tripCount: 800 });
+    log('POST /credential/issue with custom rating=42 tripCount=800',
+      cred2.success && cred2.credential.attributes.rating === 4.2 && cred2.credential.attributes.tripCount === 800);
+  } catch (e) {
+    log(`Custom credential stats failed: ${e.message}`, false);
+  }
+
+  // Test session state returns credential after issuance
+  try {
+    const state3 = await get('/session/state');
+    log('GET /session/state returns credential after issuance',
+      state3.credential !== null && state3.credential.attributes.rating === 42 && state3.credential.attributes.tripCount === 800);
+  } catch (e) {
+    log(`Session state (credential) failed: ${e.message}`, false);
+  }
+
+  // Test admin reset clears all state
+  try {
+    const resetResp = await post('/admin/reset', {});
+    const stateAfterReset = await get('/session/state');
+    log('POST /admin/reset clears all state',
+      resetResp.success && stateAfterReset.identity === null && stateAfterReset.credential === null && stateAfterReset.proof === null);
+  } catch (e) {
+    log(`Admin reset test failed: ${e.message}`, false);
+  }
+
+  // Test invalid rating rejected
+  try {
+    await post('/identity/register', {});
+    const badRes = await postRaw('/credential/issue', { rating: 99 });
+    log('POST /credential/issue rejects invalid rating (out of range)', badRes.status === 400);
+  } catch (e) {
+    log(`Invalid rating rejection test failed: ${e.message}`, false);
   }
 
   // ── Summary ────────────────────────────────────────────────────────────

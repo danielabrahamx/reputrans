@@ -6,6 +6,11 @@
  */
 import { test, expect, Page } from '@playwright/test';
 
+// Reset API session state before each test to avoid cross-test contamination
+test.beforeEach(async ({ request }) => {
+  await request.post('http://localhost:3001/admin/reset');
+});
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 async function waitForButton(page: Page, text: string) {
@@ -50,6 +55,10 @@ test.describe('Full 5-Step Demo Flow', () => {
     await expect(page.getByText('Commitment:')).toBeVisible();
     await expect(page.getByText('Leaf Index:')).toBeVisible();
     await expect(page.getByText('Merkle Root:')).toBeVisible();
+    // Master key gate: copy key before Next becomes visible
+    await expect(page.getByText('Your Master Key')).toBeVisible({ timeout: 5_000 });
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.getByRole('button', { name: 'Copy Key' }).click();
     await page.getByRole('link', { name: 'Next: Connect Platform' }).click();
 
     // Step 2 — Connect platform
@@ -59,17 +68,17 @@ test.describe('Full 5-Step Demo Flow', () => {
     await expect(page.getByText('4.8').first()).toBeVisible();
     await expect(page.getByText('1,547').first()).toBeVisible();
     await expect(page.getByText('Demo data').first()).toBeVisible();
-    await page.getByRole('link', { name: 'Next: Issue Credential' }).click();
+    await page.getByRole('button', { name: 'Next: Certify This Data' }).click();
 
     // Step 3 — Issue credential
     await expect(page).toHaveURL('/credential');
     await expect(page.getByText('Step 3 of 5')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Threshold Credential Issuance' })).toBeVisible();
-    await page.getByRole('button', { name: 'Issue Credential' }).click();
-    await expect(page.getByText('Signing Committee')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText('3-of-5')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Certify Your Work History' })).toBeVisible();
+    await page.getByRole('button', { name: 'Request Certification' }).click();
+    await expect(page.getByText('Credential Issued')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('3 of 5 validators agreed')).toBeVisible();
     await expect(page.getByText('Signed').first()).toBeVisible();
-    await page.getByRole('link', { name: 'Next: Generate Proof' }).click();
+    await page.getByRole('link', { name: 'Next: Generate Zero-Knowledge Proof' }).click();
 
     // Step 4 — Generate ZK proof
     await expect(page).toHaveURL('/prove');
