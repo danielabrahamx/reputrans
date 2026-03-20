@@ -32,6 +32,12 @@ async function initNoir(): Promise<{ noir: any; backend: any }> {
     return { noir: noirInstance, backend: backendInstance };
   }
 
+  // Barretenberg writes CRS cache to os.homedir()/.bb-crs.
+  // In Vercel serverless the home dir isn't writable; /tmp always is.
+  if (!process.env.HOME || process.env.HOME !== '/tmp') {
+    process.env.HOME = '/tmp';
+  }
+
   const circuit = await getCircuit();
 
   // Dynamic imports for ESM compatibility
