@@ -47,8 +47,8 @@ export default function DashboardPage() {
       const storedProofMeta = loadState('proofMeta') as any;
 
       const builtState: SessionState = {
-        identity: storedIdentity?.commitment ? {
-          commitment: storedIdentity.commitment,
+        identity: storedIdentity?.identityCommitment ? {
+          commitment: storedIdentity.identityCommitment,
           leafIndex: storedIdentity.leafIndex ?? null,
           setIndex: storedIdentity.setIndex ?? null,
           merkleRoot: storedIdentity.merkleRoot ?? null,
@@ -183,7 +183,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-[#94A3B8]">Rating</span>
-                    <span className="text-white">{(state.credential.attributes.rating / 10).toFixed(1)}★</span>
+                    <span className="text-white">{(state.credential.attributes.rating > 10 ? state.credential.attributes.rating / 10 : state.credential.attributes.rating).toFixed(1)}★</span>
                   </div>
                   <div className="flex justify-between gap-4">
                     <span className="text-[#94A3B8]">Trip count</span>
