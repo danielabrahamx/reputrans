@@ -17,15 +17,12 @@ let backendInstance: any = null;
 
 async function getCircuit(): Promise<any> {
   if (!circuitJson) {
-    // In Next.js serverless environment, load from public URL
-    // process.env.NEXT_PUBLIC_VERCEL_URL is set automatically by Vercel
-    // Fall back to localhost for local development
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-    const res = await fetch(`${baseUrl}/reputrans_proof.json`);
-    if (!res.ok) throw new Error(`Failed to load circuit: ${res.status}`);
-    circuitJson = await res.json();
+    // Read directly from filesystem to avoid self-fetch 401 on Vercel deployment protection.
+    // process.cwd() in Next.js serverless is the project root (where /public lives).
+    const { readFileSync } = await import('fs');
+    const { join } = await import('path');
+    const filePath = join(process.cwd(), 'public', 'reputrans_proof.json');
+    circuitJson = JSON.parse(readFileSync(filePath, 'utf-8'));
   }
   return circuitJson;
 }
