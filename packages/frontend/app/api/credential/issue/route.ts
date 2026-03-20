@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
-import { getState, setState } from '@/app/server-lib/session';
 import { pedersenHash } from '@/app/server-lib/pedersen';
 import { issueThresholdCredential, getSignerDetails } from '@/app/server-lib/credential';
 
 export async function POST(request: Request) {
   try {
-    const state = getState();
-    if (!state.identity) {
+    // Accept derivedKey from client (Vercel is stateless — client carries session)
+    const body = await request.json().catch(() => ({}));
+
+    if (!body.derivedKey) {
       return NextResponse.json(
-        { error: 'Register identity first (POST /api/identity/register)' },
+        { error: 'derivedKey required — complete step 1 (register) first' },
         { status: 400 }
       );
     }
 
-    // Accept optional custom stats from frontend (editable on Step 2)
-    const body = await request.json().catch(() => ({}));
+    const derivedKey = BigInt(body.derivedKey);
     const rawRating = body?.rating;
     const rawTripCount = body?.tripCount;
 
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       rating,
       tripCount,
       platformId: 0x00, // Uber
-      derivedKey: state.identity.derivedKey,
+      derivedKey,
     };
 
     // Pre-compute credential_message matching circuit:
@@ -55,17 +55,11 @@ export async function POST(request: Request) {
       BigInt(rating),
       BigInt(tripCount),
       0n,
-      state.identity.derivedKey,
+      derivedKey,
     ]);
 
     const credential = await issueThresholdCredential(attrs, credMsg);
     const signerDetails = getSignerDetails();
-
-    setState({
-      credential,
-      credentialMessage: credMsg,
-      platformData: { rating, tripCount, platformId: 0, platformType: 0 },
-    });
 
     return NextResponse.json({
       success: true,
