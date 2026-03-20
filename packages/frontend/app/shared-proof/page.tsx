@@ -12,7 +12,7 @@ function SharedProofContent() {
   const verified = params.get("verified");
 
   let initialStatus: Status = "invalid-url";
-  if (tx && verified) {
+  if (verified) {
     initialStatus = verified === "true" ? "verified" : "failed";
   }
 
