@@ -66,7 +66,7 @@ export default function Home() {
               </div>
               <div className="text-xs font-mono text-amber-400 mb-2 tracking-wider">Map-to-Curve</div>
               <h3 className="text-base font-semibold text-white mb-2">
-                10x Cheaper ZK Proofs
+                230x Cheaper ZK Proofs
               </h3>
               <p className="text-[#94A3B8] text-sm leading-relaxed">
                 30 constraints vs ~7,000 standard. Optimized BN254 hash-to-curve

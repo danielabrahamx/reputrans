@@ -66,7 +66,11 @@ export default function CredentialPage() {
         threshold: `${raw.threshold.threshold}-of-${raw.threshold.totalSigners}`,
       };
       setData(res);
-      saveState("credential", res);
+      saveState("credential", {
+        ...res,
+        attributes: raw.credential.attributes,
+        thresholdData: { threshold: raw.threshold.threshold, totalSigners: raw.threshold.totalSigners },
+      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Credential issuance failed");
     } finally {
