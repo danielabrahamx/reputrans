@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// Empty string = same-domain /api/ routes (works in dev and Vercel production)
+const API_URL = "";
 
 export async function apiFetch<T>(
   path: string,

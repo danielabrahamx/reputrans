@@ -1,0 +1,77 @@
+<h2>The Verifier URL — what the insurer sees</h2>
+<p class="subtitle">This is a read-only page the driver shares with anyone who needs to verify their reputation</p>
+
+<div class="mockup" style="max-width:680px;margin:0 auto;">
+  <div class="mockup-header">localhost:3000/verify?proof=a3f9c2...&inputs=0x...</div>
+  <div class="mockup-body" style="padding:0;background:#080C15;">
+
+    <!-- Nav -->
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-weight:700;letter-spacing:0.15em;color:#fff;font-size:13px;">REPUTRANS</span>
+      <span style="font-size:11px;color:#94A3B8;background:rgba(255,255,255,0.05);padding:3px 10px;border-radius:12px;">Verifier View</span>
+    </div>
+
+    <div style="padding:24px 20px;space-y:16px;">
+
+      <!-- Verified badge -->
+      <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);border-radius:12px;padding:20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(52,211,153,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#34D399;font-weight:bold;">✓</div>
+          <div>
+            <div style="color:#34D399;font-weight:600;font-size:16px;">Proof Verified On-Chain</div>
+            <div style="color:#94A3B8;font-size:12px;margin-top:2px;">Confirmed · Anvil Sepolia Fork</div>
+          </div>
+          <div style="margin-left:auto;text-align:right;">
+            <div style="font-size:10px;color:#94A3B8;font-family:monospace;">TX</div>
+            <div style="font-size:11px;color:#34D399;font-family:monospace;">0x3f9a...b2c1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- What was proven -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">What this person has proven</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;">🚗</div>
+            <div style="font-size:12px;color:#94A3B8;">Platform type</div>
+            <div style="font-size:13px;color:#fff;font-weight:600;margin-top:4px;">Rideshare</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;">⭐</div>
+            <div style="font-size:12px;color:#94A3B8;">Rating</div>
+            <div style="font-size:13px;color:#fff;font-weight:600;margin-top:4px;">≥ 4.5 stars</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;">🗺️</div>
+            <div style="font-size:12px;color:#94A3B8;">Trips</div>
+            <div style="font-size:13px;color:#fff;font-weight:600;margin-top:4px;">≥ 1,000</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- What was NOT revealed -->
+      <div style="background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;color:#818CF8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">🔒 Not revealed to you</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:#94A3B8;">Driver identity</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:#94A3B8;">Exact rating (e.g. 4.8)</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:#94A3B8;">Exact trip count</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:#94A3B8;">Which platform (Uber/Lyft)</span>
+          <span style="font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.05);color:#94A3B8;">Account or name</span>
+        </div>
+      </div>
+
+      <!-- Credential provenance -->
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px;">
+        <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Credential signed by</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:12px;color:#fff;">3-of-5 threshold committee</span>
+          <span style="font-size:10px;color:#94A3B8;">· ThetaCrypt EdDSA · Baby Jubjub</span>
+        </div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:6px;">No single validator — including the platform — can forge or revoke this credential alone.</div>
+      </div>
+
+    </div>
+  </div>
+</div>

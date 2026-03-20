@@ -1,0 +1,48 @@
+<h2>How should REPUTRANS be structured?</h2>
+<p class="subtitle">The current 5-step wizard works technically — but what should the product <em>feel like</em>?</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Linear Wizard (improved current)</h3>
+      <p>Keep the 5-step flow, but make each step feel real: show the master key at Step 1 (like MetaMask onboarding), let users enter custom stats at Step 2, and end with a shareable proof certificate instead of a raw tx hash.</p>
+      <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:12px;color:#94A3B8;">
+        <strong style="color:#fff;">Best for:</strong> Fastest to ship · Judges can walk through it in 2 mins · Stays close to current code
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Identity Dashboard</h3>
+      <p>After registration, users land on a personal dashboard showing their identity (with their key), their credentials, and their proofs. The 5 steps become actions on the dashboard, not a one-time wizard.</p>
+      <div style="margin-top:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:12px;color:#94A3B8;">
+        <strong style="color:#fff;">Best for:</strong> Feels like a real product · User has a "home" · Can issue multiple credentials over time
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#FBBF24;">My Identity</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#FBBF24;">My Credentials</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#FBBF24;">My Proofs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Two-Sided Product</h3>
+      <p>Split the app into two roles: <strong style="color:#fff;">Driver</strong> (generates and holds their proof) and <strong style="color:#fff;">Insurer/Verifier</strong> (receives and verifies the proof). The driver sends a link; the insurer opens it and sees only what they're allowed to see.</p>
+      <div style="margin-top:10px;padding:8px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:12px;color:#94A3B8;">
+        <strong style="color:#fff;">Best for:</strong> Most powerful demo · Shows the full privacy story · Mirrors real B2B product vision
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34D399;">Driver Portal</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:12px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818CF8;">Verifier Portal</span>
+      </div>
+    </div>
+  </div>
+
+</div>

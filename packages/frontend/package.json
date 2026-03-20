@@ -11,7 +11,14 @@
   "dependencies": {
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "@aztec/bb.js": "^0.58.0",
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1",
+    "@noir-lang/backend_barretenberg": "^0.36.0",
+    "@noir-lang/noir_js": "^0.36.0",
+    "poseidon-lite": "^0.3.0",
+    "viem": "^2.47.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
