@@ -39,12 +39,48 @@ export default function ProvePage() {
     setLoading(true);
     setError(null);
     try {
+      const identity = loadState('identity') as {
+        masterSecret?: string;
+        derivedKey?: string;
+        platformSecret?: string;
+        leafIndex?: number;
+        merkleProof?: { path: string[]; indices: number[]; root: string };
+      } | null;
+      const credential = loadState('credential') as {
+        signature: { R: { x: string; y: string }; S: string };
+        groupPublicKey: { x: string; y: string };
+      } | null;
+      const customStats = loadState('customStats') as { rating: number; tripCount: number } | null;
+
+      if (!identity?.masterSecret || !identity.derivedKey || !identity.platformSecret || !identity.merkleProof || !credential) {
+        setError('Missing session state — please complete steps 1–3 first.');
+        setLoading(false);
+        return;
+      }
+
       const raw = await apiFetch<ProofApiResponse>("/proof/generate", {
         method: "POST",
         body: JSON.stringify({
           minRating: Math.round(parseFloat(minRating) * 10),
           minTrips: parseInt(minTrips),
           platformType: platformType === "rideshare" ? 0 : platformType === "delivery" ? 1 : 2,
+          // Pass identity state (Vercel is stateless — client carries session)
+          masterSecret: identity.masterSecret,
+          derivedKey: identity.derivedKey,
+          platformSecret: identity.platformSecret,
+          leafIndex: identity.leafIndex,
+          merkleProof: identity.merkleProof,
+          // Pass credential state
+          credential: {
+            signature: {
+              r: { x: credential.signature.R.x, y: credential.signature.R.y },
+              s: credential.signature.S,
+            },
+            groupPublicKey: credential.groupPublicKey,
+          },
+          // Platform data
+          rating: customStats?.rating ?? 48,
+          tripCount: customStats?.tripCount ?? 1547,
         }),
       });
       const res: ProofResponse = {

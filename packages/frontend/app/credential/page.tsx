@@ -41,10 +41,12 @@ export default function CredentialPage() {
     setLoading(true);
     setError(null);
     try {
+      const identity = loadState('identity') as { derivedKey?: string } | null;
       const customStats = loadState('customStats') as { rating: number; tripCount: number } | null;
-      const body = customStats
-        ? { rating: customStats.rating, tripCount: customStats.tripCount }
-        : {};
+      const body: Record<string, unknown> = {
+        derivedKey: identity?.derivedKey,
+        ...(customStats ? { rating: customStats.rating, tripCount: customStats.tripCount } : {}),
+      };
 
       const raw = await apiFetch<CredentialApiResponse>("/credential/issue", {
         method: "POST",

@@ -7,6 +7,9 @@ import { apiFetch, truncate, saveState } from "../lib/api";
 interface RegisterApiResponse {
   success: boolean;
   masterSecret?: string;
+  derivedKey?: string;
+  platformSecret?: string;
+  merkleProof?: { path: string[]; indices: number[]; root: string };
   identity: {
     commitment: string;
     leafIndex: number;
@@ -23,6 +26,9 @@ interface RegisterResponse {
   setIndex: number;
   txHash?: string;
   masterSecret?: string;
+  derivedKey?: string;
+  platformSecret?: string;
+  merkleProof?: { path: string[]; indices: number[]; root: string };
 }
 
 export default function RegisterPage() {
@@ -46,6 +52,9 @@ export default function RegisterPage() {
         setIndex: raw.identity.setIndex,
         txHash: raw.onChain?.txHash,
         masterSecret: raw.masterSecret,
+        derivedKey: raw.derivedKey,
+        platformSecret: raw.platformSecret,
+        merkleProof: raw.merkleProof,
       };
       setData(res);
       saveState("identity", res);
