@@ -44,15 +44,14 @@ export default function VerifyPage() {
       };
       setData(res);
 
-      // Build shareable verifier URL and persist for dashboard
-      if (res.txHash) {
-        const params = new URLSearchParams({
-          tx: res.txHash,
-          verified: String(res.verified),
-        });
+      // Build shareable verifier URL and persist for dashboard.
+      // Show share link even on Vercel where on-chain tx may be unavailable.
+      if (res.verified || res.txHash) {
+        const params = new URLSearchParams({ verified: String(res.verified) });
+        if (res.txHash) params.set('tx', res.txHash);
         const url = `${window.location.origin}/shared-proof?${params.toString()}`;
         setShareUrl(url);
-        saveState("verification", { txHash: res.txHash, verified: res.verified });
+        saveState("verification", { txHash: res.txHash ?? '', verified: res.verified });
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Verification failed");

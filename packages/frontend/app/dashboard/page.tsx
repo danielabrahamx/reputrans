@@ -38,24 +38,38 @@ export default function DashboardPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [verification, setVerification] = useState<VerificationData | null>(null);
 
-  // Merge server state with sessionStorage snapshots.
-  // GET /session/state returns setIndex: null and merkleRoot: null (Stream D omits them
-  // since they're not stored as module-level vars on the server). The registration response
-  // does include them, and they're saved to sessionStorage via saveState('identity', ...) in
-  // register/page.tsx. We merge them here so the dashboard can display them.
+  // Build state entirely from sessionStorage — Vercel is stateless so there
+  // is no persistent server session to query.
   useEffect(() => {
-    apiFetch<SessionState>('/session/state')
-      .then((serverState) => {
-        const storedIdentity = loadState('identity') as any;
-        if (serverState.identity && storedIdentity) {
-          // Override nulls from server with sessionStorage values from registration
-          serverState.identity.setIndex = storedIdentity.setIndex ?? serverState.identity.setIndex ?? null;
-          serverState.identity.merkleRoot = storedIdentity.merkleRoot ?? serverState.identity.merkleRoot ?? null;
-        }
-        setState(serverState);
-      })
-      .catch(() => setState(null))
-      .finally(() => setLoading(false));
+    try {
+      const storedIdentity = loadState('identity') as any;
+      const storedCredential = loadState('credential') as any;
+      const storedProofMeta = loadState('proofMeta') as any;
+
+      const builtState: SessionState = {
+        identity: storedIdentity?.commitment ? {
+          commitment: storedIdentity.commitment,
+          leafIndex: storedIdentity.leafIndex ?? null,
+          setIndex: storedIdentity.setIndex ?? null,
+          merkleRoot: storedIdentity.merkleRoot ?? null,
+        } : null,
+        credential: storedCredential?.attributes ? {
+          attributes: storedCredential.attributes,
+          threshold: storedCredential.thresholdData ?? null,
+        } : null,
+        proof: storedProofMeta?.nullifier ? {
+          nullifier: storedProofMeta.nullifier,
+          generationTimeMs: storedProofMeta.generationTimeMs,
+          proofSizeBytes: storedProofMeta.proofSizeBytes,
+        } : null,
+      };
+
+      setState(builtState);
+    } catch {
+      setState(null);
+    } finally {
+      setLoading(false);
+    }
 
     const v = loadState<VerificationData>('verification');
     if (v) setVerification(v);

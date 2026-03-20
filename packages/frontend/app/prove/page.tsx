@@ -97,8 +97,14 @@ export default function ProvePage() {
         ],
       };
       setData(res);
-      // Save only the fields that /proof/verify needs
+      // Save fields for /proof/verify
       saveState("proof", { proof: raw.proof.data, publicInputs: raw.proof.publicInputs });
+      // Save metadata for dashboard display
+      saveState("proofMeta", {
+        nullifier: raw.proof.nullifier,
+        generationTimeMs: raw.proof.generationTimeMs,
+        proofSizeBytes: raw.proof.data.length / 2,
+      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Proof generation failed");
     } finally {
@@ -140,7 +146,7 @@ export default function ProvePage() {
             The ZK circuit proves you meet the thresholds without revealing your
             actual rating or trip count. The proof is ~2KB and verifiable
             on-chain. Map-to-Curve reduces circuit constraints from ~7,000 to
-            just 30 - 10x cheaper verification.
+            just 30 - 230x cheaper verification.
           </p>
         </div>
       </div>
