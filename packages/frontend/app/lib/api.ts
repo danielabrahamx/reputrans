@@ -1,5 +1,5 @@
-// Empty string = same-domain /api/ routes (works in dev and Vercel production)
-const API_URL = "";
+// /api prefix = Next.js App Router API routes (works in dev and Vercel production)
+const API_URL = "/api";
 
 export async function apiFetch<T>(
   path: string,
