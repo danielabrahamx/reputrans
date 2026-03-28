@@ -131,7 +131,7 @@ test.describe('Stream A: Wizard Polish', () => {
 
     // Step 5 — Verify
     await expect(page).toHaveURL('/verify');
-    await page.getByRole('button', { name: 'Verify on Sepolia' }).click();
+    await page.getByRole('button', { name: 'Verify on Base Sepolia' }).click();
     await expect(page.locator('span').filter({ hasText: 'Verified' })).toBeVisible({ timeout: 30_000 });
 
     // New buttons should be visible

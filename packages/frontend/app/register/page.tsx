@@ -144,7 +144,7 @@ export default function RegisterPage() {
                   </div>
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-[#94A3B8]">Network:</span>
-                    <span className="text-white">Local Anvil (Sepolia fork)</span>
+                    <span className="text-white">Base Sepolia Testnet</span>
                   </div>
                 </>
               )}

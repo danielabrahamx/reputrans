@@ -61,7 +61,7 @@ test.describe('Stream B: Dashboard', () => {
 
     // ── Step 5: Verify on-chain ──
     await page.goto('/verify');
-    await page.getByRole('button', { name: 'Verify on Sepolia' }).click();
+    await page.getByRole('button', { name: 'Verify on Base Sepolia' }).click();
     await page.waitForSelector('text=Verified', { timeout: 60_000 });
 
     // Check dashboard shows proof card

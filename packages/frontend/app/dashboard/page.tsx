@@ -242,11 +242,7 @@ export default function DashboardPage() {
               <div className="pt-2">
                 <button
                   onClick={() => {
-                    const params = new URLSearchParams({
-                      tx: verification.txHash,
-                      verified: String(verification.verified),
-                    });
-                    const url = `${window.location.origin}/shared-proof?${params.toString()}`;
+                    const url = `${window.location.origin}/shared-proof?tx=${verification.txHash}`;
                     navigator.clipboard.writeText(url);
                     setShareCopied(true);
                     setTimeout(() => setShareCopied(false), 2000);

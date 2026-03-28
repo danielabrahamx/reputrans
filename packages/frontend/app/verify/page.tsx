@@ -44,14 +44,12 @@ export default function VerifyPage() {
       };
       setData(res);
 
-      // Build shareable verifier URL and persist for dashboard.
-      // Show share link even on Vercel where on-chain tx may be unavailable.
-      if (res.verified || res.txHash) {
-        const params = new URLSearchParams({ verified: String(res.verified) });
-        if (res.txHash) params.set('tx', res.txHash);
-        const url = `${window.location.origin}/shared-proof?${params.toString()}`;
+      // Build shareable verifier URL — only the tx hash.
+      // The shared-proof page independently verifies the tx on Base Sepolia.
+      if (res.txHash) {
+        const url = `${window.location.origin}/shared-proof?tx=${res.txHash}`;
         setShareUrl(url);
-        saveState("verification", { txHash: res.txHash ?? '', verified: res.verified });
+        saveState("verification", { txHash: res.txHash, verified: res.verified });
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Verification failed");
@@ -92,7 +90,7 @@ export default function VerifyPage() {
           </div>
           <p className="text-sm text-[#94A3B8] leading-relaxed">
             The UltraPlonk proof is submitted to a Solidity verifier contract
-            deployed on a local Sepolia fork. The contract checks the proof
+            deployed on Base Sepolia. The contract checks the proof
             mathematically - no trust required, no personal data revealed.
           </p>
         </div>
@@ -107,7 +105,7 @@ export default function VerifyPage() {
           {loading && (
             <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
           )}
-          {loading ? "Verifying on Sepolia..." : "Verify on Sepolia"}
+          {loading ? "Verifying on Base Sepolia..." : "Verify on Base Sepolia"}
         </button>
       )}
 
@@ -157,7 +155,7 @@ export default function VerifyPage() {
                   </div>
                   <div className="flex items-center justify-between gap-4">
                     <span>Network:</span>
-                    <span className="text-white">Local Anvil (Sepolia fork)</span>
+                    <span className="text-white">Base Sepolia Testnet</span>
                   </div>
                 </>
               )}

@@ -99,8 +99,8 @@ test.describe('Full 5-Step Demo Flow', () => {
     await expect(page).toHaveURL('/verify');
     await expect(page.getByText('Step 5 of 5')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'On-Chain Verification' })).toBeVisible();
-    await page.getByRole('button', { name: 'Verify on Sepolia' }).click();
-    await expect(page.getByText('Verifying on Sepolia...')).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('button', { name: 'Verify on Base Sepolia' }).click();
+    await expect(page.getByText('Verifying on Base Sepolia...')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('span.text-emerald-400').filter({ hasText: 'Verified' })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByRole('heading', { name: 'Insurer Learned' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Insurer Did NOT Learn' })).toBeVisible();

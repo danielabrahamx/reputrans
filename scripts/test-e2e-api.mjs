@@ -5,7 +5,7 @@
  */
 
 const BASE_URL = 'http://localhost:3001';
-const WALLET = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const WALLET = process.env.WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
 let passed = 0;
 let failed = 0;
@@ -46,7 +46,7 @@ async function main() {
   try {
     const health = await get('/health');
     log(`Health OK — registry: ${health.contracts?.registry?.slice(0, 10)}...`);
-    log(`Anvil connected — chainId: ${health.contracts?.chainId}`);
+    log(`Chain connected — chainId: ${health.contracts?.chainId}`);
   } catch (e) {
     log(`Health check failed: ${e.message}`, false);
     console.error('Cannot connect to API. Is the server running on port 3001?');

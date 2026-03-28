@@ -1,5 +1,5 @@
 /**
- * Ethereum contract interaction via viem (Sepolia testnet)
+ * Ethereum contract interaction via viem (Base Sepolia testnet)
  *
  * Handles:
  * - Contract deployment reference
@@ -15,11 +15,11 @@ import {
   type Hex,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { sepolia } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 
 // Load from environment (lazy — read at call time so env has been set)
 const getPrivateKey = () => process.env.PRIVATE_KEY as Hex;
-const getRpcUrl = () => process.env.ANVIL_RPC_URL || process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+const getRpcUrl = () => process.env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org';
 
 // Contract addresses (set after deployment)
 const getRegistryAddress = () => (process.env.REGISTRY_ADDRESS as Address) || null;
@@ -103,7 +103,7 @@ function getAccount() {
 
 function getPublicClient() {
   return createPublicClient({
-    chain: sepolia,
+    chain: baseSepolia,
     transport: http(getRpcUrl()),
   });
 }
@@ -111,7 +111,7 @@ function getPublicClient() {
 function getWalletClient() {
   return createWalletClient({
     account: getAccount(),
-    chain: sepolia,
+    chain: baseSepolia,
     transport: http(getRpcUrl()),
   });
 }
@@ -197,6 +197,6 @@ export function getContractAddresses(): {
     registry: registryAddress || getRegistryAddress(),
     verifier: verifierAddress || getVerifierAddress(),
     rpcUrl: getRpcUrl(),
-    chainId: 11155111,
+    chainId: 84532,
   };
 }
